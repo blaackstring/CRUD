@@ -1,57 +1,59 @@
 'use client';
 
-import Image from "next/image";
+import api from "@/lib/axios";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import type { User } from "@/context/UserContext";
+import { useRouter, useParams } from "next/navigation";
 import { useUser } from "@/context/UserContext";
-import { useParams } from "next/navigation";
+import type { User } from "@/context/UserContext";
+import Image from "next/image";
 
-type SingleProp={
-  user: User;
-};
-
-export default function SingleUser() {
-  const {all_users,setall_users} = useUser();
+export default function SingleUser({ user }: { user: User }) {
+  const { all_users, setall_users } = useUser();
   const router = useRouter();
-  const params=useParams();
-  const [isEdited,setIsEdited]=useState(false)
-  const id=params?.id
+  const params = useParams();
+  const id = Number(params.id);
+const [isEdited,setIsEdited]=useState(false)
+  const [formData, setFormData] = useState<User | null>(user);
 
-  useEffect(()=>{
-    all_users.map((u:User,idx)=>{
-      if(u.id==Number(id))
-      {
-        setFormData(u);
-      }
-    })
-  },[id])
+  useEffect(() => {
+    const found = all_users.find(u => u.id === id);
+    if (found) setFormData(found);
+  }, [id, all_users]);
 
+  const handleSave = async (id:number) => {
+    if (!formData) return;
 
-  const [formData, setFormData] = useState<User |null >(null);
-  const handleSave=(id:number| undefined)=>{
-    setIsEdited((p)=>!p)  
-     if (!formData) return;
-    setall_users(all_users.map((u)=>u.id===id?u=formData:u))
-    
-  }
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    setall_users(prev =>prev.map(u => (u.id === id ? formData : u)));
 
-    setFormData(prev => prev?{ ...prev,
-      [name]: value,
-    }:prev);
+    setIsEdited(false);
+
+    try {
+      
+      await api.put(`/users/${id}`, formData);
+    } catch (e) {
+      console.error("Update failed");
+    }
   };
 
-  const handleBack=()=>{
-    router.back();
-  }
-  const handleDelete = (id: number | undefined) => {
-
+  const handleChange = (e:React.ChangeEvent<HTMLInputElement> ) => { 
+    const { name, value } = e.target;
+   setFormData(prev => prev?{ ...prev, [name]: value, }:prev); 
+  
+  };
+  const handleDelete = async (id:number) => {
     setall_users(prev => prev.filter(u => u.id !== id));
 
+    try {
+      await api.delete(`/users/${id}`);
+    } catch (e) {
+      console.error("Delete failed");
+    }
+
     router.back();
   };
+  const handleBack=()=>{ router.back(); }
+
+  if (!formData) return <div>Loading...</div>;
   return (
     <div className="w-full min-h-screen flex justify-center items-center bg-white/15 text-white">
       <div className="p-4 rounded-lg">
@@ -82,9 +84,14 @@ export default function SingleUser() {
         </div>
 
  <div className="grid grid-cols-2 gap-2 mt-4">
-  <button className="bg-green-500 p-2 rounded" onClick={()=>handleSave(formData?.id)}>
-           {isEdited ? 'Save' : 'Edit'}
+  {isEdited?<button className="bg-green-500 p-2 rounded" onClick={()=>handleSave(formData?.id)}>
+           Save
+          </button>:
+          <button className="bg-green-500 p-2 rounded" onClick={()=>setIsEdited((p)=>!p)}>
+           Edit
           </button>
+          }
+
               <button className="bg-red-600 p-2 rounded"   onClick={() => handleDelete(formData?.id)} >
             Delete
           </button>

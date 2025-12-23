@@ -1,6 +1,5 @@
-   export const dynamic = "force-dynamic";
-   import axios from "axios";
 import UsersUI from "./UsersUi";
+import  api  from "@/lib/axios";
 
 export default async function Users(){
 
@@ -8,7 +7,7 @@ export default async function Users(){
 
 
  
-        const result= await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/users`);
+        const result= await api.get(`/users`);
         console.log(result.data);
         
     return <UsersUI data={result.data}/>
