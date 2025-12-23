@@ -25,6 +25,7 @@ const [isEdited,setIsEdited]=useState(false)
 
     setall_users(prev =>prev.map(u => (u.id === id ? formData : u)));
 
+    alert('User Updated successfully')
     setIsEdited(false);
 
     try {
@@ -45,8 +46,12 @@ const [isEdited,setIsEdited]=useState(false)
 
     try {
       await api.delete(`/users/${id}`);
+       alert('User Deleted successfully')
+        router.back();
+       setIsEdited(false);
     } catch (e) {
       console.error("Delete failed");
+      
     }
 
     router.back();
