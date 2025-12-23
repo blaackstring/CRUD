@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
-    domains: ["randomuser.me","plus.unsplash.com"],
+    remotePatterns:[new URL("randomuser.me"),new URL("plus.unsplash.com")],
   },
 };
 
